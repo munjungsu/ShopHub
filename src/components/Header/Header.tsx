@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import styles from './Header.module.scss';
-
+import Link from 'next/link';
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -15,11 +15,11 @@ const Header = () => {
           </div>
           
           <div className={`${styles.menu} ${isMenuOpen ? styles.active : ''}`}>
-            <a href="/" className={styles.menuItem}>홈</a>
-            <a href="/products" className={styles.menuItem}>제품</a>
-            <a href="/categories" className={styles.menuItem}>카테고리</a>
-            <a href="/about" className={styles.menuItem}>회사소개</a>
-            <a href="/contact" className={styles.menuItem}>연락처</a>
+            <Link href="/" className={styles.menuItem}>홈</Link>
+            <Link href="/products" className={styles.menuItem}>제품</Link>
+            <Link href="/categories" className={styles.menuItem}>카테고리</Link>
+            <Link href="/about" className={styles.menuItem}>회사소개</Link>
+            <Link href="/contact" className={styles.menuItem}>연락처</Link>
           </div>
           
           <div className={styles.actions}>
