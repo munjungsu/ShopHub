@@ -1,0 +1,146 @@
+// Variables
+$primary-color: #2563eb;
+$text-color: #1f2937;
+$light-text: #6b7280;
+$background-color: #ffffff;
+$light-background: #f9fafb;
+$border-color: #e5e7eb;
+$border-radius: 8px;
+
+.header {
+  background-color: $background-color;
+  border-bottom: 1px solid $border-color;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
+  height: 70px;
+}
+
+.logo {
+  h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: $primary-color;
+    margin: 0;
+  }
+}
+
+.menu {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  
+  @media (max-width: 768px) {
+    position: fixed;
+    top: 70px;
+    left: 0;
+    right: 0;
+    background-color: $background-color;
+    flex-direction: column;
+    padding: 2rem;
+    gap: 1rem;
+    transform: translateY(-100%);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid $border-color;
+    
+    &.active {
+      transform: translateY(0);
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+}
+
+.menuItem {
+  font-weight: 500;
+  color: $text-color;
+  transition: color 0.2s ease;
+  
+  &:hover {
+    color: $primary-color;
+  }
+  
+  @media (max-width: 768px) {
+    font-size: 1.1rem;
+    padding: 0.5rem 0;
+    width: 100%;
+    text-align: center;
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.searchBtn,
+.cartBtn {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  border-radius: $border-radius;
+  color: $text-color;
+  transition: all 0.2s ease;
+  position: relative;
+  
+  &:hover {
+    background-color: $light-background;
+    color: $primary-color;
+  }
+}
+
+.cartBtn {
+  position: relative;
+}
+
+.cartCount {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #f59e0b;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobileMenuBtn {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  
+  @media (max-width: 768px) {
+    display: flex;
+  }
+  
+  span {
+    width: 24px;
+    height: 2px;
+    background-color: $text-color;
+    transition: all 0.3s ease;
+  }
+  
+  &:hover span {
+    background-color: $primary-color;
+  }
+} 
