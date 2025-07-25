@@ -1,11 +1,16 @@
-'use client';
-
-import { useState } from 'react';
-import styles from './Header.module.scss';
+'use client'
 import Link from 'next/link';
+import { signOut, useSession } from 'next-auth/react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import styles from './Header.module.scss';
 const Header = () => {
+  const { data: session } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  console.log(session)
+  React.useEffect(()=>{
 
+  }, [session])
   return (
     <header className={styles.header}>
       <div className="container">
@@ -37,6 +42,11 @@ const Header = () => {
               </svg>
               <span className={styles.cartCount}>0</span>
             </button>
+            {session?.user ? (
+              <button className={styles.authBtn} onClick={()=>signOut({ callbackUrl: '/login' })}>로그아웃</button>
+            ) : (
+              <Link href="/login" className={styles.loginBtn}>로그인</Link>
+            )}
             <button 
               className={styles.mobileMenuBtn}
               onClick={() => setIsMenuOpen(!isMenuOpen)}

@@ -143,4 +143,60 @@ $border-radius: 8px;
   &:hover span {
     background-color: $primary-color;
   }
+}
+
+// 로그인 버튼 스타일
+.loginBtn {
+  background: none;
+  color: $text-color;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  font-weight: 500;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: color 0.2s;
+  height: 40px;
+  line-height: 40px;
+  margin-left: 2rem;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+
+  &:hover {
+    color: $primary-color;
+    background: none;
+  }
+}
+
+// 사용자 정보 스타일
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-left: 2rem;
+}
+
+.userName {
+  font-size: 0.9rem;
+  color: $text-color;
+  font-weight: 500;
+}
+
+.authBtn {
+  background: none;
+  color: $text-color;
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    color: $primary-color;
+    border-color: $primary-color;
+    background: none;
+  }
 } 
