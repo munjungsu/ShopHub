@@ -93,6 +93,11 @@ $border-radius: 8px;
   color: $text-color;
   transition: all 0.2s ease;
   position: relative;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
   
   &:hover {
     background-color: $light-background;
@@ -161,42 +166,9 @@ $border-radius: 8px;
   margin-left: 2rem;
   display: inline-flex;
   align-items: center;
-  text-decoration: none;
 
   &:hover {
     color: $primary-color;
-    background: none;
-  }
-}
-
-// 사용자 정보 스타일
-.userInfo {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-left: 2rem;
-}
-
-.userName {
-  font-size: 0.9rem;
-  color: $text-color;
-  font-weight: 500;
-}
-
-.authBtn {
-  background: none;
-  color: $text-color;
-  border: 1px solid $border-color;
-  border-radius: $border-radius;
-  padding: 0.5rem 1rem;
-  font-weight: 500;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    color: $primary-color;
-    border-color: $primary-color;
     background: none;
   }
 } 
