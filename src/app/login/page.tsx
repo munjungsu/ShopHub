@@ -20,12 +20,10 @@ export default function LoginPage() {
   useEffect(() => {
     const logoutFlag = localStorage.getItem('webview_logout_flag');
     if (logoutFlag === 'true') {
-      console.log('🔄 로그인 페이지에서 로그아웃 플래그 발견, 1초 후 제거');
-      // 1초 후 플래그 제거 (완전한 로그아웃 보장)
-      setTimeout(() => {
-        localStorage.removeItem('webview_logout_flag');
-        console.log('✅ 로그아웃 플래그 제거 완료');
-      }, 1000);
+      console.log('🔄 로그인 페이지에서 로그아웃 플래그 발견, 즉시 제거');
+      // 즉시 플래그 제거 (로그인 가능하도록)
+      localStorage.removeItem('webview_logout_flag');
+      console.log('✅ 로그아웃 플래그 제거 완료');
     }
   }, []);
 
