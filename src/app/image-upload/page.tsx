@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { uploadImageAndSaveToDB, saveImageUrlToDB, getImagesFromDB } from '@/lib/image-actions';
 import styles from './page.module.scss';
 
@@ -89,7 +89,7 @@ export default function ImageUploadPage() {
   };
 
   // 이미지 목록 로드
-  const loadImages = async () => {
+  const loadImages = useCallback(async () => {
     try {
       const response = await getImagesFromDB(tableName);
       if (response.success) {
@@ -98,12 +98,12 @@ export default function ImageUploadPage() {
     } catch (error) {
       console.error('이미지 목록 로드 오류:', error);
     }
-  };
+  }, [tableName]);
 
-  // 컴포넌트 마운트 시 이미지 목록 로드
-  useState(() => {
+  // 컴포넌트 마운트 시 및 테이블 변경 시 이미지 목록 로드
+  useEffect(() => {
     loadImages();
-  });
+  }, [loadImages]);
 
   return (
     <div className={styles.container}>
