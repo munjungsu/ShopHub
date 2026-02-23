@@ -4,89 +4,38 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useActionState } from 'react';
 import { authenticate } from '../../lib/actions';
-import { useSession, signOut } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import styles from './page.module.scss';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const [errorMessage, formAction, isPending] = useActionState(
     authenticate,
     undefined,
   );
-  const [isInitialized, setIsInitialized] = useState(false);
 
-  // 초기화: WebView 환경에서 로그아웃 상태 확인
+  // 컴포넌트 마운트 시 로그아웃 플래그만 제거 (세션 체크는 WebViewBridge에 위임)
   useEffect(() => {
-    const initialize = async () => {
-      const isWebView = typeof window !== 'undefined' && 
-        (!!(window as any).ReactNativeWebView || navigator.userAgent.includes('wv'));
-      
-      if (isWebView) {
-        const logoutFlag = localStorage.getItem('webview_logout_flag');
-        const storedSession = localStorage.getItem('webview_session');
-        
-        // 로그아웃 플래그 즉시 제거
-        if (logoutFlag === 'true') {
-          console.log('🔄 로그인 페이지에서 로그아웃 플래그 발견, 즉시 제거');
-          localStorage.removeItem('webview_logout_flag');
-          console.log('✅ 로그아웃 플래그 제거 완료');
-        }
-        
-        // WebView에서 localStorage에 세션이 없으면 NextAuth 세션도 제거
-        if (!storedSession && status === 'authenticated') {
-          console.log('🚪 WebView: localStorage 세션 없음, NextAuth 세션 제거');
-          await signOut({ redirect: false });
-        }
-      }
-      
-      setIsInitialized(true);
-    };
-
-    if (status !== 'loading') {
-      initialize();
+    const logoutFlag = localStorage.getItem('webview_logout_flag');
+    if (logoutFlag === 'true') {
+      console.log('🔄 로그인 페이지에서 로그아웃 플래그 발견, 즉시 제거');
+      localStorage.removeItem('webview_logout_flag');
+      console.log('✅ 로그아웃 플래그 제거 완료');
     }
-  }, [status]);
+  }, []);
 
-  // 로그인 성공 시 처리
+  // 로그인 성공 시 리다이렉트 (세션 저장은 WebViewBridge에 위임)
   useEffect(() => {
-    if (errorMessage === 'success' && session) {
-      // WebView 환경 확인
-      const isWebView = typeof window !== 'undefined' && 
-        (!!(window as any).ReactNativeWebView || navigator.userAgent.includes('wv'));
-
-      if (isWebView) {
-        // 로그아웃 플래그 제거
-        localStorage.removeItem('webview_logout_flag');
-        
-        // localStorage에 세션 저장
-        localStorage.setItem('webview_session', JSON.stringify(session));
-        console.log('💾 WebView 세션 저장:', session);
-
-        // 커스텀 이벤트 발송으로 Header 즉시 업데이트
-        const event = new CustomEvent('webview_session_change', {
-          detail: { type: 'login', session }
-        });
-        window.dispatchEvent(event);
-
-        // React Native로 세션 데이터 전달
-        if ((window as any).ReactNativeWebView) {
-          const sessionData = {
-            type: 'AUTH_SUCCESS',
-            session: session,
-            timestamp: Date.now(),
-          };
-          
-          (window as any).ReactNativeWebView.postMessage(JSON.stringify(sessionData));
-          console.log('📤 Session sent to React Native:', sessionData);
-        }
-      }
-      
-      // 페이지 이동
-      window.location.href = '/';
+    if (errorMessage === 'success') {
+      console.log('✅ 로그인 성공, 홈으로 이동');
+      // WebViewBridge가 세션을 감지하고 localStorage에 저장할 시간 확보
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 100);
     }
-  }, [errorMessage, session]);
+  }, [errorMessage]);
 
   return (
     <div className={styles.loginContainer}>

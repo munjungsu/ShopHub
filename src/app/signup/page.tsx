@@ -14,44 +14,18 @@ export default function SignupPage() {
   const { data: session } = useSession();
   const [state, formAction, isPending] = useActionState(register, undefined);
 
-  // 회원가입 성공 시 처리
+  // 회원가입 성공 시 리다이렉트 (세션 저장은 WebViewBridge에 위임)
   useEffect(() => {
-    if (state?.success && session) {
-      // WebView 환경 확인
-      const isWebView = typeof window !== 'undefined' && 
-        (!!(window as any).ReactNativeWebView || navigator.userAgent.includes('wv'));
-
-      if (isWebView) {
-        // 로그아웃 플래그 제거
-        localStorage.removeItem('webview_logout_flag');
-        
-        // localStorage에 세션 저장
-        localStorage.setItem('webview_session', JSON.stringify(session));
-        console.log('💾 WebView 세션 저장 (회원가입):', session);
-
-        // 커스텀 이벤트 발송으로 Header 즉시 업데이트
-        const event = new CustomEvent('webview_session_change', {
-          detail: { type: 'login', session }
-        });
-        window.dispatchEvent(event);
-
-        // React Native로 세션 데이터 전달
-        if ((window as any).ReactNativeWebView) {
-          const sessionData = {
-            type: 'AUTH_SUCCESS',
-            session: session,
-            timestamp: Date.now(),
-          };
-          
-          (window as any).ReactNativeWebView.postMessage(JSON.stringify(sessionData));
-          console.log('📤 Session sent to React Native (Signup):', sessionData);
-        }
-      }
-      
-      // 페이지 이동
-      window.location.href = '/';
+    if (state?.success) {
+      console.log('✅ 회원가입 성공, 홈으로 이동');
+      // 로그아웃 플래그 제거
+      localStorage.removeItem('webview_logout_flag');
+      // WebViewBridge가 세션을 감지하고 localStorage에 저장할 시간 확보
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 100);
     }
-  }, [state?.success, session]);
+  }, [state?.success]);
 
   return (
     <div className={styles.signupContainer}>
