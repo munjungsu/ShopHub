@@ -4,28 +4,50 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useActionState } from 'react';
 import { authenticate } from '../../lib/actions';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import styles from './page.module.scss';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [errorMessage, formAction, isPending] = useActionState(
     authenticate,
     undefined,
   );
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // 컴포넌트 마운트 시 로그아웃 플래그 확인
+  // 초기화: WebView 환경에서 로그아웃 상태 확인
   useEffect(() => {
-    const logoutFlag = localStorage.getItem('webview_logout_flag');
-    if (logoutFlag === 'true') {
-      console.log('🔄 로그인 페이지에서 로그아웃 플래그 발견, 즉시 제거');
-      // 즉시 플래그 제거 (로그인 가능하도록)
-      localStorage.removeItem('webview_logout_flag');
-      console.log('✅ 로그아웃 플래그 제거 완료');
+    const initialize = async () => {
+      const isWebView = typeof window !== 'undefined' && 
+        (!!(window as any).ReactNativeWebView || navigator.userAgent.includes('wv'));
+      
+      if (isWebView) {
+        const logoutFlag = localStorage.getItem('webview_logout_flag');
+        const storedSession = localStorage.getItem('webview_session');
+        
+        // 로그아웃 플래그 즉시 제거
+        if (logoutFlag === 'true') {
+          console.log('🔄 로그인 페이지에서 로그아웃 플래그 발견, 즉시 제거');
+          localStorage.removeItem('webview_logout_flag');
+          console.log('✅ 로그아웃 플래그 제거 완료');
+        }
+        
+        // WebView에서 localStorage에 세션이 없으면 NextAuth 세션도 제거
+        if (!storedSession && status === 'authenticated') {
+          console.log('🚪 WebView: localStorage 세션 없음, NextAuth 세션 제거');
+          await signOut({ redirect: false });
+        }
+      }
+      
+      setIsInitialized(true);
+    };
+
+    if (status !== 'loading') {
+      initialize();
     }
-  }, []);
+  }, [status]);
 
   // 로그인 성공 시 처리
   useEffect(() => {

@@ -1,12 +1,42 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
+import { useSession, signOut } from 'next-auth/react';
 
 export default function WebViewBridge() {
   const { data: session, status } = useSession();
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // 초기화: WebView 환경에서 로그아웃 상태 확인
+  useEffect(() => {
+    const initialize = async () => {
+      const isWebView = typeof window !== 'undefined' && 
+        (!!(window as any).ReactNativeWebView || navigator.userAgent.includes('wv'));
+
+      if (isWebView && status === 'authenticated') {
+        const storedSession = localStorage.getItem('webview_session');
+        
+        // localStorage에 세션이 없으면 NextAuth 세션도 제거
+        if (!storedSession) {
+          console.log('🧹 WebViewBridge: localStorage 세션 없음, NextAuth 세션 정리');
+          await signOut({ redirect: false });
+        }
+      }
+      
+      setIsInitialized(true);
+    };
+
+    if (status !== 'loading') {
+      initialize();
+    }
+  }, [status]);
 
   useEffect(() => {
+    // 초기화 완료 전에는 실행하지 않음
+    if (!isInitialized) {
+      return;
+    }
+
     // WebView 환경 감지
     const isWebView = typeof window !== 'undefined' && 
       (!!(window as any).ReactNativeWebView || navigator.userAgent.includes('wv'));
@@ -72,7 +102,7 @@ export default function WebViewBridge() {
         console.log('🔄 Logout sent to React Native');
       }
     }
-  }, [session, status]);
+  }, [session, status, isInitialized]);
 
   // UI를 렌더링하지 않음
   return null;
