@@ -4,6 +4,31 @@ import bcrypt from "bcrypt";
 import Credentials from "next-auth/providers/credentials";
 import { sql } from '@vercel/postgres';
 
+// NextAuth 타입 확장
+declare module "next-auth" {
+  interface User {
+    id: string;
+    name: string;
+    email: string;
+    role?: string;
+  }
+  interface Session {
+    user: {
+      id: string;
+      name: string;
+      email: string;
+      role: string;
+    };
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    id: string;
+    role: string;
+  }
+}
+
 type User = {
   id: string;
   name: string;
