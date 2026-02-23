@@ -11,33 +11,47 @@ export default function WebViewBridge() {
     const isWebView = typeof window !== 'undefined' && 
       (!!(window as any).ReactNativeWebView || navigator.userAgent.includes('wv'));
 
-    if (!isWebView || !(window as any).ReactNativeWebView) {
+    if (!isWebView) {
       return;
     }
 
-    // 세션 상태가 변경될 때마다 RN으로 전달
+    // 세션 상태가 변경될 때마다 처리
     if (status === 'authenticated' && session) {
-      const message = {
-        type: 'SESSION_UPDATE',
-        status: 'authenticated',
-        session: {
-          user: session.user,
-          expires: session.expires,
-        },
-        timestamp: Date.now(),
-      };
+      // localStorage에 세션 저장
+      localStorage.setItem('webview_session', JSON.stringify(session));
+      console.log('💾 WebView 세션 저장 (자동):', session);
 
-      (window as any).ReactNativeWebView.postMessage(JSON.stringify(message));
-      console.log('🔄 Session sent to React Native:', message);
+      // React Native로 전달
+      if ((window as any).ReactNativeWebView) {
+        const message = {
+          type: 'SESSION_UPDATE',
+          status: 'authenticated',
+          session: {
+            user: session.user,
+            expires: session.expires,
+          },
+          timestamp: Date.now(),
+        };
+
+        (window as any).ReactNativeWebView.postMessage(JSON.stringify(message));
+        console.log('🔄 Session sent to React Native:', message);
+      }
     } else if (status === 'unauthenticated') {
-      const message = {
-        type: 'SESSION_UPDATE',
-        status: 'unauthenticated',
-        timestamp: Date.now(),
-      };
+      // localStorage에서 세션 제거
+      localStorage.removeItem('webview_session');
+      console.log('🗑️ WebView 세션 제거');
 
-      (window as any).ReactNativeWebView.postMessage(JSON.stringify(message));
-      console.log('🔄 Logout sent to React Native');
+      // React Native로 전달
+      if ((window as any).ReactNativeWebView) {
+        const message = {
+          type: 'SESSION_UPDATE',
+          status: 'unauthenticated',
+          timestamp: Date.now(),
+        };
+
+        (window as any).ReactNativeWebView.postMessage(JSON.stringify(message));
+        console.log('🔄 Logout sent to React Native');
+      }
     }
   }, [session, status]);
 

@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link';
 import { signOut, useSession } from 'next-auth/react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCart } from '../../contexts/CartContext';
 import styles from './Header.module.scss';
 
@@ -9,27 +9,80 @@ const Header = () => {
   const { data: session, status } = useSession();
   const { totalItems } = useCart();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [webViewSession, setWebViewSession] = useState<any>(null);
+  const [isWebView, setIsWebView] = useState(false);
 
-  console.log('세션 상태:', status);
-  console.log('세션 데이터:', session);
+  // WebView 환경 감지 및 localStorage 세션 확인
+  useEffect(() => {
+    const checkWebView = typeof window !== 'undefined' && 
+      (!!(window as any).ReactNativeWebView || navigator.userAgent.includes('wv'));
+    
+    setIsWebView(checkWebView);
+
+    if (checkWebView) {
+      // localStorage에서 세션 읽기
+      const storedSession = localStorage.getItem('webview_session');
+      if (storedSession) {
+        try {
+          const parsed = JSON.parse(storedSession);
+          setWebViewSession(parsed);
+          console.log('📱 WebView 세션 로드:', parsed);
+        } catch (error) {
+          console.error('세션 파싱 오류:', error);
+        }
+      }
+
+      // storage 이벤트 리스너 (다른 탭에서 변경 감지)
+      const handleStorageChange = (e: StorageEvent) => {
+        if (e.key === 'webview_session') {
+          if (e.newValue) {
+            try {
+              const parsed = JSON.parse(e.newValue);
+              setWebViewSession(parsed);
+              console.log('📱 WebView 세션 업데이트:', parsed);
+            } catch (error) {
+              console.error('세션 파싱 오류:', error);
+            }
+          } else {
+            setWebViewSession(null);
+          }
+        }
+      };
+
+      window.addEventListener('storage', handleStorageChange);
+      return () => window.removeEventListener('storage', handleStorageChange);
+    }
+  }, []);
+
+  // WebView 환경에서 사용할 세션 (localStorage 우선)
+  const activeSession = isWebView && webViewSession ? webViewSession : session;
+  const activeStatus = isWebView && webViewSession ? 'authenticated' : status;
+
+  console.log('세션 상태:', activeStatus);
+  console.log('세션 데이터:', activeSession);
+  console.log('WebView 모드:', isWebView);
 
   const handleSignOut = async () => {
-    // WebView 환경 체크
-    const isWebView = typeof window !== 'undefined' && 
-      (!!(window as any).ReactNativeWebView || navigator.userAgent.includes('wv'));
-
-    if (isWebView && (window as any).ReactNativeWebView) {
-      // React Native로 로그아웃 알림
-      (window as any).ReactNativeWebView.postMessage(
-        JSON.stringify({
-          type: 'LOGOUT',
-          timestamp: Date.now(),
-        })
-      );
-      console.log('🚪 Logout message sent to React Native');
+    if (isWebView) {
+      // WebView 환경에서 로그아웃
+      localStorage.removeItem('webview_session');
+      setWebViewSession(null);
+      
+      if ((window as any).ReactNativeWebView) {
+        (window as any).ReactNativeWebView.postMessage(
+          JSON.stringify({
+            type: 'LOGOUT',
+            timestamp: Date.now(),
+          })
+        );
+        console.log('🚪 Logout message sent to React Native');
+      }
+      
+      window.location.href = '/login';
+    } else {
+      // 일반 브라우저 로그아웃
+      await signOut({ callbackUrl: '/login' });
     }
-
-    await signOut({ callbackUrl: '/login' });
   };
 
   const closeMenu = () => {
@@ -67,17 +120,17 @@ const Header = () => {
               </svg>
               {totalItems > 0 && <span className={styles.cartCount}>{totalItems}</span>}
             </Link>
-            {status === 'loading' ? (
+            {activeStatus === 'loading' ? (
               <span className={styles.authBtn}>로딩중...</span>
-            ) : session?.user ? (
+            ) : activeSession?.user ? (
               <div className={styles.userSection}>
-                {(session.user as any).role === 'admin' && (
+                {(activeSession.user as any).role === 'admin' && (
                   <Link href="/admin/products" className={styles.adminBtn}>
                     관리자
                   </Link>
                 )}
                 <span className={styles.userName}>
-                  {session.user.name || session.user.email}
+                  {activeSession.user.name || activeSession.user.email}
                 </span>
                 <button className={styles.logoutBtn} onClick={handleSignOut}>
                   로그아웃

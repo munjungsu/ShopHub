@@ -23,16 +23,22 @@ export default function LoginPage() {
       const isWebView = typeof window !== 'undefined' && 
         (!!(window as any).ReactNativeWebView || navigator.userAgent.includes('wv'));
 
-      if (isWebView && (window as any).ReactNativeWebView) {
+      if (isWebView) {
+        // localStorage에 세션 저장
+        localStorage.setItem('webview_session', JSON.stringify(session));
+        console.log('💾 WebView 세션 저장:', session);
+
         // React Native로 세션 데이터 전달
-        const sessionData = {
-          type: 'AUTH_SUCCESS',
-          session: session,
-          timestamp: Date.now(),
-        };
-        
-        (window as any).ReactNativeWebView.postMessage(JSON.stringify(sessionData));
-        console.log('Session sent to React Native:', sessionData);
+        if ((window as any).ReactNativeWebView) {
+          const sessionData = {
+            type: 'AUTH_SUCCESS',
+            session: session,
+            timestamp: Date.now(),
+          };
+          
+          (window as any).ReactNativeWebView.postMessage(JSON.stringify(sessionData));
+          console.log('📤 Session sent to React Native:', sessionData);
+        }
       }
       
       // 페이지 이동
