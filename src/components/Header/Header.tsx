@@ -32,6 +32,20 @@ const Header = () => {
         }
       }
 
+      // 커스텀 이벤트 리스너 (로그아웃용)
+      const handleSessionChange = (e: Event) => {
+        const customEvent = e as CustomEvent;
+        if (customEvent.detail?.type === 'logout') {
+          setWebViewSession(null);
+          console.log('🔄 세션 상태 업데이트: 로그아웃');
+        } else if (customEvent.detail?.session) {
+          setWebViewSession(customEvent.detail.session);
+          console.log('🔄 세션 상태 업데이트:', customEvent.detail.session);
+        }
+      };
+
+      window.addEventListener('webview_session_change', handleSessionChange);
+
       // storage 이벤트 리스너 (다른 탭에서 변경 감지)
       const handleStorageChange = (e: StorageEvent) => {
         if (e.key === 'webview_session') {
@@ -50,7 +64,11 @@ const Header = () => {
       };
 
       window.addEventListener('storage', handleStorageChange);
-      return () => window.removeEventListener('storage', handleStorageChange);
+      
+      return () => {
+        window.removeEventListener('storage', handleStorageChange);
+        window.removeEventListener('webview_session_change', handleSessionChange);
+      };
     }
   }, []);
 
@@ -66,7 +84,12 @@ const Header = () => {
     if (isWebView) {
       // WebView 환경에서 로그아웃
       localStorage.removeItem('webview_session');
-      setWebViewSession(null);
+      
+      // 커스텀 이벤트 발송으로 즉시 UI 업데이트
+      const event = new CustomEvent('webview_session_change', {
+        detail: { type: 'logout' }
+      });
+      window.dispatchEvent(event);
       
       if ((window as any).ReactNativeWebView) {
         (window as any).ReactNativeWebView.postMessage(
@@ -78,7 +101,10 @@ const Header = () => {
         console.log('🚪 Logout message sent to React Native');
       }
       
-      window.location.href = '/login';
+      // 잠시 후 리다이렉트 (UI 업데이트 확인용)
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 100);
     } else {
       // 일반 브라우저 로그아웃
       await signOut({ callbackUrl: '/login' });

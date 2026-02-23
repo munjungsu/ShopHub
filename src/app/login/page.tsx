@@ -28,6 +28,12 @@ export default function LoginPage() {
         localStorage.setItem('webview_session', JSON.stringify(session));
         console.log('💾 WebView 세션 저장:', session);
 
+        // 커스텀 이벤트 발송으로 Header 즉시 업데이트
+        const event = new CustomEvent('webview_session_change', {
+          detail: { type: 'login', session }
+        });
+        window.dispatchEvent(event);
+
         // React Native로 세션 데이터 전달
         if ((window as any).ReactNativeWebView) {
           const sessionData = {

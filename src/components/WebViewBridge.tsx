@@ -21,6 +21,12 @@ export default function WebViewBridge() {
       localStorage.setItem('webview_session', JSON.stringify(session));
       console.log('💾 WebView 세션 저장 (자동):', session);
 
+      // 커스텀 이벤트 발송으로 Header 즉시 업데이트
+      const event = new CustomEvent('webview_session_change', {
+        detail: { type: 'session_update', session }
+      });
+      window.dispatchEvent(event);
+
       // React Native로 전달
       if ((window as any).ReactNativeWebView) {
         const message = {
@@ -40,6 +46,12 @@ export default function WebViewBridge() {
       // localStorage에서 세션 제거
       localStorage.removeItem('webview_session');
       console.log('🗑️ WebView 세션 제거');
+
+      // 커스텀 이벤트 발송
+      const event = new CustomEvent('webview_session_change', {
+        detail: { type: 'logout' }
+      });
+      window.dispatchEvent(event);
 
       // React Native로 전달
       if ((window as any).ReactNativeWebView) {
