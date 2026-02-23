@@ -22,6 +22,9 @@ export default function SignupPage() {
         (!!(window as any).ReactNativeWebView || navigator.userAgent.includes('wv'));
 
       if (isWebView) {
+        // 로그아웃 플래그 제거
+        localStorage.removeItem('webview_logout_flag');
+        
         // localStorage에 세션 저장
         localStorage.setItem('webview_session', JSON.stringify(session));
         console.log('💾 WebView 세션 저장 (회원가입):', session);

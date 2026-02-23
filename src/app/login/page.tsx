@@ -16,6 +16,19 @@ export default function LoginPage() {
     undefined,
   );
 
+  // 컴포넌트 마운트 시 로그아웃 플래그 확인
+  useEffect(() => {
+    const logoutFlag = localStorage.getItem('webview_logout_flag');
+    if (logoutFlag === 'true') {
+      console.log('🔄 로그인 페이지에서 로그아웃 플래그 발견, 1초 후 제거');
+      // 1초 후 플래그 제거 (완전한 로그아웃 보장)
+      setTimeout(() => {
+        localStorage.removeItem('webview_logout_flag');
+        console.log('✅ 로그아웃 플래그 제거 완료');
+      }, 1000);
+    }
+  }, []);
+
   // 로그인 성공 시 처리
   useEffect(() => {
     if (errorMessage === 'success' && session) {
@@ -24,6 +37,9 @@ export default function LoginPage() {
         (!!(window as any).ReactNativeWebView || navigator.userAgent.includes('wv'));
 
       if (isWebView) {
+        // 로그아웃 플래그 제거
+        localStorage.removeItem('webview_logout_flag');
+        
         // localStorage에 세션 저장
         localStorage.setItem('webview_session', JSON.stringify(session));
         console.log('💾 WebView 세션 저장:', session);

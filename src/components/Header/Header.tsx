@@ -19,19 +19,29 @@ const Header = () => {
     
     setIsWebView(checkWebView);
 
-    if (checkWebView) {
-      // localStorage에서 세션 읽기
-      const storedSession = localStorage.getItem('webview_session');
-      if (storedSession) {
-        try {
-          const parsed = JSON.parse(storedSession);
-          setWebViewSession(parsed);
-          console.log('📱 WebView 세션 로드:', parsed);
-        } catch (error) {
-          console.error('세션 파싱 오류:', error);
+    const checkSession = () => {
+      if (checkWebView) {
+        const storedSession = localStorage.getItem('webview_session');
+        if (storedSession) {
+          try {
+            const parsed = JSON.parse(storedSession);
+            setWebViewSession(parsed);
+            console.log('📱 WebView 세션 로드:', parsed);
+          } catch (error) {
+            console.error('세션 파싱 오류:', error);
+            setWebViewSession(null);
+          }
+        } else {
+          setWebViewSession(null);
+          console.log('📱 WebView 세션 없음');
         }
       }
+    };
 
+    // 초기 세션 체크
+    checkSession();
+
+    if (checkWebView) {
       // 커스텀 이벤트 리스너 (로그아웃용)
       const handleSessionChange = (e: Event) => {
         const customEvent = e as CustomEvent;
@@ -46,51 +56,75 @@ const Header = () => {
 
       window.addEventListener('webview_session_change', handleSessionChange);
 
-      // storage 이벤트 리스너 (다른 탭에서 변경 감지)
+      // storage 이벤트 리스너
       const handleStorageChange = (e: StorageEvent) => {
         if (e.key === 'webview_session') {
           if (e.newValue) {
             try {
               const parsed = JSON.parse(e.newValue);
               setWebViewSession(parsed);
-              console.log('📱 WebView 세션 업데이트:', parsed);
+              console.log('📱 WebView 세션 업데이트 (storage):', parsed);
             } catch (error) {
               console.error('세션 파싱 오류:', error);
+              setWebViewSession(null);
             }
           } else {
             setWebViewSession(null);
+            console.log('📱 WebView 세션 삭제 (storage)');
           }
         }
       };
 
+      // focus 이벤트로 페이지 재진입 시 세션 재확인
+      const handleFocus = () => {
+        checkSession();
+      };
+
       window.addEventListener('storage', handleStorageChange);
+      window.addEventListener('focus', handleFocus);
       
       return () => {
         window.removeEventListener('storage', handleStorageChange);
         window.removeEventListener('webview_session_change', handleSessionChange);
+        window.removeEventListener('focus', handleFocus);
       };
     }
   }, []);
 
-  // WebView 환경에서 사용할 세션 (localStorage 우선)
-  const activeSession = isWebView && webViewSession ? webViewSession : session;
-  const activeStatus = isWebView && webViewSession ? 'authenticated' : status;
+  // WebView 환경에서 사용할 세션
+  // WebView에서는 localStorage의 webViewSession만 사용 (NextAuth 세션 무시)
+  const activeSession = isWebView ? webViewSession : session;
+  const activeStatus = isWebView 
+    ? (webViewSession ? 'authenticated' : 'unauthenticated') 
+    : status;
 
   console.log('세션 상태:', activeStatus);
   console.log('세션 데이터:', activeSession);
   console.log('WebView 모드:', isWebView);
+  console.log('webViewSession:', webViewSession);
 
   const handleSignOut = async () => {
     if (isWebView) {
       // WebView 환경에서 로그아웃
-      localStorage.removeItem('webview_session');
+      console.log('🚪 WebView 로그아웃 시작');
       
-      // 커스텀 이벤트 발송으로 즉시 UI 업데이트
+      // 0. 로그아웃 플래그 설정 (WebViewBridge가 세션 저장하지 않도록)
+      localStorage.setItem('webview_logout_flag', 'true');
+      
+      // 1. State 즉시 초기화
+      setWebViewSession(null);
+      
+      // 2. localStorage 세션 삭제
+      localStorage.removeItem('webview_session');
+      console.log('🗑️ localStorage 삭제 완료');
+      
+      // 3. 커스텀 이벤트 발송
       const event = new CustomEvent('webview_session_change', {
         detail: { type: 'logout' }
       });
       window.dispatchEvent(event);
       
+      // 4. React Native로 알림
       if ((window as any).ReactNativeWebView) {
         (window as any).ReactNativeWebView.postMessage(
           JSON.stringify({
@@ -98,13 +132,15 @@ const Header = () => {
             timestamp: Date.now(),
           })
         );
-        console.log('🚪 Logout message sent to React Native');
+        console.log('📤 RN으로 로그아웃 메시지 전송');
       }
       
-      // 잠시 후 리다이렉트 (UI 업데이트 확인용)
-      setTimeout(() => {
-        window.location.href = '/login';
-      }, 100);
+      // 5. NextAuth 로그아웃 (쿠키 정리)
+      await signOut({ redirect: false });
+      console.log('✅ NextAuth 로그아웃 완료');
+      
+      // 6. 로그인 페이지로 이동
+      window.location.href = '/login';
     } else {
       // 일반 브라우저 로그아웃
       await signOut({ callbackUrl: '/login' });

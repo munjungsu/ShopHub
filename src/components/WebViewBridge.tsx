@@ -17,6 +17,13 @@ export default function WebViewBridge() {
 
     // 세션 상태가 변경될 때마다 처리
     if (status === 'authenticated' && session) {
+      // 로그아웃 플래그 확인
+      const logoutFlag = localStorage.getItem('webview_logout_flag');
+      if (logoutFlag === 'true') {
+        console.log('🚫 로그아웃 중이므로 세션 저장 무시');
+        return;
+      }
+
       // localStorage에 세션 저장
       localStorage.setItem('webview_session', JSON.stringify(session));
       console.log('💾 WebView 세션 저장 (자동):', session);
