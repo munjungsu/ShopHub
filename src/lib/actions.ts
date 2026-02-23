@@ -20,13 +20,18 @@ export async function authenticate(
   formData: FormData,
 ) {
   try {
-    await signIn('credentials', {
+    const result = await signIn('credentials', {
       email: formData.get('email'),
       password: formData.get('password'),
-      redirect: false, // 자동 리다이렉트 비활성화
+      redirect: false,
     });
-    // 성공 시 undefined 반환 (오류 없음)
-    return undefined;
+    
+    if (result?.error) {
+      return 'Invalid credentials.';
+    }
+    
+    // 로그인 성공 시 홈페이지로 리디렉션
+    redirect('/');
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {

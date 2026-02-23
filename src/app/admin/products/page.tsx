@@ -21,7 +21,7 @@ export default function AdminProductsPage() {
   const loadProducts = async () => {
     setLoading(true);
     const res = await getImagesFromDB("products");
-    if (res.success) setProducts(res.data);
+    if (res.success) setProducts(res.data || []);
     setLoading(false);
   };
 

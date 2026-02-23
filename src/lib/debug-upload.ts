@@ -463,21 +463,21 @@ export async function testStorageConnection() {
           success: false,
           error: 'Storage 인증 실패 - API 키를 확인해주세요.',
           details: bucketsError.message,
-          code: bucketsError.statusCode
+          code: (bucketsError as any).statusCode
         };
       } else if (bucketsError.message.includes('fetch')) {
         return {
           success: false,
           error: 'Storage 네트워크 오류 - URL을 확인해주세요.',
           details: bucketsError.message,
-          code: bucketsError.statusCode
+          code: (bucketsError as any).statusCode
         };
       } else {
         return {
           success: false,
           error: `Storage 연결 오류: ${bucketsError.message}`,
           details: bucketsError.message,
-          code: bucketsError.statusCode
+          code: (bucketsError as any).statusCode
         };
       }
     }

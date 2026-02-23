@@ -100,26 +100,4 @@ export async function getTableData(tableName: string) {
     console.error(`${tableName} 테이블 데이터 조회 중 오류:`, error);
     throw error;
   }
-}
-
-export async function getAllProducts() {
-  try {
-    const result = await sql`
-      SELECT 
-        id,
-        name,
-        description,
-        price,
-        image_url,
-        category,
-        created_at
-      FROM products 
-      ORDER BY created_at DESC;
-    `;
-    
-    return result.rows;
-  } catch (error) {
-    console.error('제품 데이터 조회 중 오류:', error);
-    throw error;
-  }
 } 

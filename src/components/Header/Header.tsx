@@ -4,16 +4,19 @@ import { signOut, useSession } from 'next-auth/react';
 import React, { useState } from 'react';
 import { useCart } from '../../contexts/CartContext';
 import styles from './Header.module.scss';
+
 const Header = () => {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { totalItems } = useCart();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  console.log(session)
-  React.useEffect(()=>{
-    return ()=>{
-      signOut();
-    }
-  }, [])
+
+  console.log('세션 상태:', status);
+  console.log('세션 데이터:', session);
+
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: '/login' });
+  };
+
   return (
     <header className={styles.header}>
       <div className="container">
@@ -45,8 +48,17 @@ const Header = () => {
               </svg>
               {totalItems > 0 && <span className={styles.cartCount}>{totalItems}</span>}
             </Link>
-            {session?.user ? (
-              <button className={styles.authBtn} onClick={()=>signOut({ callbackUrl: '/login' })}>로그아웃</button>
+            {status === 'loading' ? (
+              <span className={styles.authBtn}>로딩중...</span>
+            ) : session?.user ? (
+              <div className={styles.userSection}>
+                <span className={styles.userName}>
+                  {session.user.name || session.user.email}
+                </span>
+                <button className={styles.logoutBtn} onClick={handleSignOut}>
+                  로그아웃
+                </button>
+              </div>
             ) : (
               <Link href="/login" className={styles.loginBtn}>로그인</Link>
             )}

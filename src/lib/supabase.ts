@@ -40,7 +40,7 @@ export async function uploadImage(file: File, bucketName: string = 'images') {
     const filePath = `${fileName}`;
 
     // Supabase Storage에 파일 업로드
-    const { data, error } = await client.storage
+    const { error } = await client.storage
       .from(bucketName)
       .upload(filePath, file);
 

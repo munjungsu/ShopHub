@@ -91,7 +91,14 @@ const ProductSection = () => {
           {sampleProducts.map((product) => (
             <ProductCard
               key={product.id}
-              product={product}
+              product={{
+                id: product.id,
+                name: product.name,
+                description: product.description,
+                price: product.price,
+                image_url: product.image,
+                category: product.category
+              }}
             />
           ))}
         </div>

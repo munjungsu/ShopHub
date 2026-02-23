@@ -11,6 +11,23 @@ export default function MyPage() {
   const [selectedItems, setSelectedItems] = React.useState<number[]>([]);
   const [selectAll, setSelectAll] = React.useState(false);
 
+  // items가 변경될 때 selectAll 상태 업데이트 및 삭제된 아이템 정리
+  React.useEffect(() => {
+    if (items.length === 0) {
+      setSelectedItems([]);
+      setSelectAll(false);
+    } else {
+      // 현재 장바구니에 없는 아이템들을 선택 목록에서 제거
+      const currentItemIds = items.map(item => item.id);
+      setSelectedItems(prev => {
+        const filteredSelected = prev.filter(id => currentItemIds.includes(id));
+        // 전체선택 상태 업데이트
+        setSelectAll(filteredSelected.length === items.length && items.length > 0);
+        return filteredSelected;
+      });
+    }
+  }, [items]);
+
   if (status === 'loading') {
     return <div className={styles.loading}>로딩 중...</div>;
   }
@@ -37,6 +54,7 @@ export default function MyPage() {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleClearCart = () => {
     if (confirm('장바구니를 모두 비우시겠습니까?')) {
       clearCart();
@@ -78,23 +96,6 @@ export default function MyPage() {
       setSelectAll(false);
     }
   };
-
-  // items가 변경될 때 selectAll 상태 업데이트 및 삭제된 아이템 정리
-  React.useEffect(() => {
-    if (items.length === 0) {
-      setSelectedItems([]);
-      setSelectAll(false);
-    } else {
-      // 현재 장바구니에 없는 아이템들을 선택 목록에서 제거
-      const currentItemIds = items.map(item => item.id);
-      setSelectedItems(prev => {
-        const filteredSelected = prev.filter(id => currentItemIds.includes(id));
-        // 전체선택 상태 업데이트
-        setSelectAll(filteredSelected.length === items.length && items.length > 0);
-        return filteredSelected;
-      });
-    }
-  }, [items]);
 
   return (
     <div className={styles.myPage}>

@@ -2,7 +2,6 @@
 
 import { sql } from '@vercel/postgres';
 import { uploadImage, deleteImage } from './supabase';
-import { createClient } from '@supabase/supabase-js';
 
 // 이미지 업로드 및 데이터베이스 저장
 export async function uploadImageAndSaveToDB(
@@ -183,18 +182,4 @@ export async function getImagesFromDB(tableName: string = 'products') {
       error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.'
     };
   }
-}
-
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
-
-const { data, error } = await supabase
-  .storage
-  .from('images')
-  .list('products', { limit: 100 });
-
-if (data) {
-  const urls = data.map(file =>
-    supabase.storage.from('images').getPublicUrl(`products/${file.name}`).data.publicUrl
-  );
-  console.log(urls);
 }

@@ -3,55 +3,63 @@ import { z } from "zod";
 import bcrypt from "bcrypt";
 import Credentials from "next-auth/providers/credentials";
 import { sql } from '@vercel/postgres';
+
 type User = {
   id: string;
   name: string;
   email: string;
   password: string;
-  role: string;
+  role?: string;
 };
+
 async function getUser(email: string): Promise<User | undefined> {
   try {
-    const user = await sql<User[]>`SELECT * FROM users WHERE email=${email}`;
+    const user = await sql<User>`SELECT * FROM users WHERE email=${email}`;
     return user.rows[0];
   } catch (error) {
-    console.error(error);
-    throw new Error("Failed to fetch user.");
+    console.error('Failed to fetch user:', error);
+    throw new Error('Failed to fetch user.');
   }
 }
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
+  secret: process.env.NEXTAUTH_SECRET,
   pages: {
     signIn: "/login",
   },
-  session: { strategy: "jwt" },
-   callbacks: {
-    authorized({ auth, request: { nextUrl } }) {
+  session: { 
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  callbacks: {
+    async authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isOnDashboard = nextUrl.pathname.startsWith('/');
-      if (isOnDashboard) {
-        if (isLoggedIn) return true;
-        return false; // Redirect unauthenticated users to login page
-      } else if (isLoggedIn) {
-        return Response.redirect(new URL('/', nextUrl));
+      const isOnLoginPage = nextUrl.pathname === '/login';
+      
+      if (isOnLoginPage) {
+        if (isLoggedIn) return Response.redirect(new URL('/', nextUrl));
+        return true;
       }
+      
       return true;
     },
-    // 필요하다면 jwt, session 콜백도 여기에 추가 가능
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id
-        token.email = user.email
+        token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
       }
-      return token
+      return token;
     },
     async session({ session, token }) {
-      session.user.id = token.id
-      session.user.email = token.email
-      return session
+      if (session.user) {
+        session.user.id = token.id as string;
+        session.user.email = token.email as string;
+        session.user.name = token.name as string;
+      }
+      return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET,
   providers: [
      Credentials({
       async authorize(credentials) {

@@ -7,7 +7,7 @@ import styles from './page.module.scss';
 export default function ImageUploadPage() {
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [_selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [tableName, setTableName] = useState('products');
   const [images, setImages] = useState<any[]>([]);
@@ -93,7 +93,7 @@ export default function ImageUploadPage() {
     try {
       const response = await getImagesFromDB(tableName);
       if (response.success) {
-        setImages(response.data);
+        setImages(response.data || []);
       }
     } catch (error) {
       console.error('이미지 목록 로드 오류:', error);

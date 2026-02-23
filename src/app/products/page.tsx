@@ -1,68 +1,98 @@
-import { Suspense } from 'react';
+'use client';
+
+import { useState, useEffect } from 'react';
 import styles from './page.module.scss';
-import ServerProductList, { getProductCategories, getFilteredProductCount } from './ServerProductList';
-import ProductFilters from './ProductFilters';
-import ProductListSkeleton, { FiltersSkeleton } from './ProductListSkeleton';
+import ProductCard from '@/components/ProductCard/ProductCard';
+import { getImagesFromDB } from '@/lib/image-actions';
 
-interface ProductsPageProps {
-  searchParams: Promise<{
-    search?: string;
-    category?: string;
-    page?: string;
-  }>;
-}
-
-export default async function ProductsPage({ searchParams }: ProductsPageProps) {
-  const params = await searchParams;
-  const searchTerm = params.search || '';
-  const selectedCategory = params.category || 'all';
-  const currentPage = parseInt(params.page || '1');
+export default function ProductsPage() {
+  const [products, setProducts] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 8;
 
-  // 서버에서 카테고리 목록과 총 제품 수 가져오기
-  const categories = await getProductCategories();
-  const totalProducts = await getFilteredProductCount(searchTerm, selectedCategory);
+  // DB에서 제품 목록 불러오기
+  useEffect(() => {
+    async function fetchProducts() {
+      const res = await getImagesFromDB('products');
+      if (res.success) setProducts(res.data || []);
+    }
+    fetchProducts();
+  }, []);
+
+  // 카테고리 목록
+  const categories = ['all', ...new Set(products.map(product => product.category))];
+
+  // 검색 및 필터링된 제품 목록
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         product.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  // 현재 페이지의 제품 목록
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+
+  // 페이지 변경 핸들러
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <main className={styles.main}>
       <div className={styles.container}>
         <h1 className={styles.title}>Our Products</h1>
         
-        {/* 필터 컴포넌트 (클라이언트) */}
-        <ProductFilters
-          categories={categories}
-          selectedCategory={selectedCategory}
-          totalProducts={totalProducts}
-          currentPage={currentPage}
-          productsPerPage={productsPerPage}
-          initialSearchTerm={searchTerm}
-        />
-
-        {/* 제품 목록 (서버) */}
-        <div className={styles.productsGrid}>
-          <Suspense 
-            key={`${searchTerm}-${selectedCategory}-${currentPage}`}
-            fallback={<ProductListSkeleton count={productsPerPage} />}
-          >
-            <ServerProductList
-              searchTerm={searchTerm}
-              selectedCategory={selectedCategory}
-              currentPage={currentPage}
-              productsPerPage={productsPerPage}
+        {/* 검색 및 필터 섹션 */}
+        <div className={styles.filters}>
+          <div className={styles.search}>
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
-          </Suspense>
+          </div>
+          
+          <div className={styles.categories}>
+            {categories.map((category) => (
+              <button
+                key={category}
+                className={`${styles.categoryBtn} ${selectedCategory === category ? styles.active : ''}`}
+                onClick={() => setSelectedCategory(category)}
+              >
+                {category.charAt(0).toUpperCase() + category.slice(1)}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* 페이지네이션을 제품 목록 아래에 배치 */}
-        <ProductFilters
-          categories={categories}
-          selectedCategory={selectedCategory}
-          totalProducts={totalProducts}
-          currentPage={currentPage}
-          productsPerPage={productsPerPage}
-          initialSearchTerm={searchTerm}
-          onlyPagination={true}
-        />
+        {/* 제품 목록 */}
+        <div className={styles.productsGrid}>
+          {currentProducts.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+
+        {/* 페이지네이션 */}
+        {filteredProducts.length > productsPerPage && (
+          <div className={styles.pagination}>
+            {Array.from({ length: Math.ceil(filteredProducts.length / productsPerPage) }).map((_, index) => (
+              <button
+                key={index + 1}
+                className={`${styles.pageBtn} ${currentPage === index + 1 ? styles.active : ''}`}
+                onClick={() => handlePageChange(index + 1)}
+              >
+                {index + 1}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </main>
   );
