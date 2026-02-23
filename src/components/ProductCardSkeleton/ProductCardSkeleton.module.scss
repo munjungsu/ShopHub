@@ -1,0 +1,103 @@
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+.skeletonCard {
+  background: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.skeletonImage {
+  width: 100%;
+  height: 250px;
+  background: linear-gradient(
+    to right,
+    #f0f0f0 0%,
+    #e0e0e0 20%,
+    #f0f0f0 40%,
+    #f0f0f0 100%
+  );
+  background-size: 800px 250px;
+  animation: shimmer 1.5s infinite linear;
+}
+
+.skeletonContent {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeletonTitle {
+  height: 24px;
+  width: 70%;
+  background: linear-gradient(
+    to right,
+    #f0f0f0 0%,
+    #e0e0e0 20%,
+    #f0f0f0 40%,
+    #f0f0f0 100%
+  );
+  background-size: 800px 24px;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: 4px;
+}
+
+.skeletonDescription {
+  height: 16px;
+  width: 100%;
+  background: linear-gradient(
+    to right,
+    #f0f0f0 0%,
+    #e0e0e0 20%,
+    #f0f0f0 40%,
+    #f0f0f0 100%
+  );
+  background-size: 800px 16px;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: 4px;
+
+  &:nth-of-type(2) {
+    width: 90%;
+  }
+}
+
+.skeletonPrice {
+  height: 28px;
+  width: 40%;
+  background: linear-gradient(
+    to right,
+    #f0f0f0 0%,
+    #e0e0e0 20%,
+    #f0f0f0 40%,
+    #f0f0f0 100%
+  );
+  background-size: 800px 28px;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: 4px;
+  margin-top: 8px;
+}
+
+.skeletonButton {
+  height: 40px;
+  width: 100%;
+  background: linear-gradient(
+    to right,
+    #f0f0f0 0%,
+    #e0e0e0 20%,
+    #f0f0f0 40%,
+    #f0f0f0 100%
+  );
+  background-size: 800px 40px;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: 8px;
+  margin-top: 12px;
+}

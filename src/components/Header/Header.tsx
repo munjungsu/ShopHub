@@ -17,20 +17,24 @@ const Header = () => {
     await signOut({ callbackUrl: '/login' });
   };
 
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+  };
+
   return (
     <header className={styles.header}>
       <div className="container">
         <nav className={styles.nav}>
-          <div className={styles.logo}>
+          <Link href="/" className={styles.logo} onClick={closeMenu}>
             <h1>ShopHub</h1>
-          </div>
+          </Link>
           
           <div className={`${styles.menu} ${isMenuOpen ? styles.active : ''}`}>
-            <Link href="/" className={styles.menuItem}>홈</Link>
-            <Link href="/products" className={styles.menuItem}>제품</Link>
-            <Link href="/categories" className={styles.menuItem}>카테고리</Link>
-            <Link href="/about" className={styles.menuItem}>회사소개</Link>
-            <Link href="/contact" className={styles.menuItem}>연락처</Link>
+            <Link href="/" className={styles.menuItem} onClick={closeMenu}>홈</Link>
+            <Link href="/products" className={styles.menuItem} onClick={closeMenu}>제품</Link>
+            <Link href="/categories" className={styles.menuItem} onClick={closeMenu}>카테고리</Link>
+            <Link href="/about" className={styles.menuItem} onClick={closeMenu}>회사소개</Link>
+            <Link href="/contact" className={styles.menuItem} onClick={closeMenu}>연락처</Link>
           </div>
           
           <div className={styles.actions}>
@@ -52,6 +56,11 @@ const Header = () => {
               <span className={styles.authBtn}>로딩중...</span>
             ) : session?.user ? (
               <div className={styles.userSection}>
+                {(session.user as any).role === 'admin' && (
+                  <Link href="/admin/products" className={styles.adminBtn}>
+                    관리자
+                  </Link>
+                )}
                 <span className={styles.userName}>
                   {session.user.name || session.user.email}
                 </span>

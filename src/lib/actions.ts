@@ -14,6 +14,94 @@ import {
 import { signIn } from '../../auth';
 import { AuthError } from 'next-auth';
 import { redirect } from 'next/navigation';
+import { z } from 'zod';
+import bcrypt from 'bcrypt';
+import { sql } from '@vercel/postgres';
+
+// 회원가입 스키마 정의
+const SignupFormSchema = z.object({
+  email: z.string().email({ message: '올바른 이메일 형식이 아닙니다.' }),
+  password: z.string().min(6, { message: '비밀번호는 최소 6자 이상이어야 합니다.' }),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: '비밀번호가 일치하지 않습니다.',
+  path: ['confirmPassword'],
+});
+
+export type SignupFormState = {
+  errors?: {
+    email?: string[];
+    password?: string[];
+    confirmPassword?: string[];
+  };
+  message?: string;
+  success?: boolean;
+};
+
+export async function register(
+  prevState: SignupFormState | undefined,
+  formData: FormData,
+): Promise<SignupFormState> {
+  // 1. 폼 데이터 검증
+  const validatedFields = SignupFormSchema.safeParse({
+    email: formData.get('email'),
+    password: formData.get('password'),
+    confirmPassword: formData.get('confirmPassword'),
+  });
+
+  // 검증 실패 시
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: '입력한 정보를 확인해주세요.',
+    };
+  }
+
+  const { email, password } = validatedFields.data;
+
+  try {
+    // 2. 이메일 중복 확인
+    const existingUser = await sql`
+      SELECT id FROM users WHERE email = ${email}
+    `;
+
+    if (existingUser.rows.length > 0) {
+      return {
+        message: '이미 등록된 이메일입니다.',
+      };
+    }
+
+    // 3. 비밀번호 해시화
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 4. 사용자 데이터베이스에 저장
+    const result = await sql`
+      INSERT INTO users (email, password, name)
+      VALUES (${email}, ${hashedPassword}, ${email.split('@')[0]})
+      RETURNING id, email, name
+    `;
+
+    console.log('✅ 회원가입 성공:', result.rows[0]);
+
+    // 5. 회원가입 성공 후 자동 로그인
+    await signIn('credentials', {
+      email,
+      password,
+      redirect: false,
+    });
+
+    return {
+      success: true,
+      message: '회원가입이 성공했습니다.',
+    };
+
+  } catch (error) {
+    console.error('❌ 회원가입 오류:', error);
+    return {
+      message: '회원가입 중 오류가 발생했습니다. 다시 시도해주세요.',
+    };
+  }
+}
 
 export async function authenticate(
   prevState: string | undefined,
@@ -25,13 +113,12 @@ export async function authenticate(
       password: formData.get('password'),
       redirect: false,
     });
-    
+
     if (result?.error) {
       return 'Invalid credentials.';
     }
-    
-    // 로그인 성공 시 홈페이지로 리디렉션
-    redirect('/');
+
+    return 'success';
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {

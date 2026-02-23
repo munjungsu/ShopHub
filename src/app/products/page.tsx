@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react';
 import styles from './page.module.scss';
 import ProductCard from '@/components/ProductCard/ProductCard';
+import ProductCardSkeleton from '@/components/ProductCardSkeleton/ProductCardSkeleton';
 import { getImagesFromDB } from '@/lib/image-actions';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -15,8 +17,10 @@ export default function ProductsPage() {
   // DB에서 제품 목록 불러오기
   useEffect(() => {
     async function fetchProducts() {
+      setLoading(true);
       const res = await getImagesFromDB('products');
       if (res.success) setProducts(res.data || []);
+      setLoading(false);
     }
     fetchProducts();
   }, []);
@@ -74,9 +78,22 @@ export default function ProductsPage() {
 
         {/* 제품 목록 */}
         <div className={styles.productsGrid}>
-          {currentProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+          {loading ? (
+            // 로딩 중일 때 스켈레톤 UI 표시
+            Array.from({ length: productsPerPage }).map((_, index) => (
+              <ProductCardSkeleton key={index} />
+            ))
+          ) : currentProducts.length > 0 ? (
+            // 제품이 있을 때
+            currentProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))
+          ) : (
+            // 제품이 없을 때
+            <div className={styles.noProducts}>
+              <p>검색 결과가 없습니다.</p>
+            </div>
+          )}
         </div>
 
         {/* 페이지네이션 */}
