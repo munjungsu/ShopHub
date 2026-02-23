@@ -5,6 +5,7 @@ import Footer from "@/components/Footer/Footer";
 import SessionProvider from "@/components/SessionProvider";
 import { CartProvider } from "@/contexts/CartContext";
 import { auth } from "@/auth";
+import WebViewBridge from "@/components/WebViewBridge";
 
 export const metadata: Metadata = {
   title: "ShopHub - 최고의 제품을 합리적인 가격으로",
@@ -17,11 +18,12 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await auth();
-  
+
   return (
     <html lang="ko">
       <body>
         <SessionProvider session={session}>
+          <WebViewBridge />
           <CartProvider>
             <Header />
             {children}

@@ -4,22 +4,41 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useActionState } from 'react';
 import { authenticate } from '../../lib/actions';
+import { useSession } from 'next-auth/react';
 import styles from './page.module.scss';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { data: session } = useSession();
   const [errorMessage, formAction, isPending] = useActionState(
     authenticate,
     undefined,
   );
 
-  // 로그인 성공 시 리다이렉트
+  // 로그인 성공 시 처리
   useEffect(() => {
-    if (errorMessage === 'success') {
+    if (errorMessage === 'success' && session) {
+      // WebView 환경 확인
+      const isWebView = typeof window !== 'undefined' && 
+        (!!(window as any).ReactNativeWebView || navigator.userAgent.includes('wv'));
+
+      if (isWebView && (window as any).ReactNativeWebView) {
+        // React Native로 세션 데이터 전달
+        const sessionData = {
+          type: 'AUTH_SUCCESS',
+          session: session,
+          timestamp: Date.now(),
+        };
+        
+        (window as any).ReactNativeWebView.postMessage(JSON.stringify(sessionData));
+        console.log('Session sent to React Native:', sessionData);
+      }
+      
+      // 페이지 이동
       window.location.href = '/';
     }
-  }, [errorMessage]);
+  }, [errorMessage, session]);
 
   return (
     <div className={styles.loginContainer}>
@@ -68,4 +87,4 @@ export default function LoginPage() {
       </div>
     </div>
   );
-} 
+}

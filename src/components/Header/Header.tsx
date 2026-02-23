@@ -14,6 +14,21 @@ const Header = () => {
   console.log('세션 데이터:', session);
 
   const handleSignOut = async () => {
+    // WebView 환경 체크
+    const isWebView = typeof window !== 'undefined' && 
+      (!!(window as any).ReactNativeWebView || navigator.userAgent.includes('wv'));
+
+    if (isWebView && (window as any).ReactNativeWebView) {
+      // React Native로 로그아웃 알림
+      (window as any).ReactNativeWebView.postMessage(
+        JSON.stringify({
+          type: 'LOGOUT',
+          timestamp: Date.now(),
+        })
+      );
+      console.log('🚪 Logout message sent to React Native');
+    }
+
     await signOut({ callbackUrl: '/login' });
   };
 
