@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import styles from './HeroSection.module.scss';
 
 const HeroSection = () => {
@@ -17,9 +18,11 @@ const HeroSection = () => {
               품질과 가격 모두 만족하는 쇼핑 경험을 제공합니다.
             </p>
             <div className={styles.actions}>
-              <button className={`${styles.ctaBtn} btn btn--primary`}>
-                제품 둘러보기
-              </button>
+              <Link href="/products">
+                <button className={`${styles.ctaBtn} btn btn--primary`}>
+                  제품 둘러보기
+                </button>
+              </Link>
               <button className={`${styles.secondaryBtn} btn btn--outline`}>
                 특가 상품 보기
               </button>
