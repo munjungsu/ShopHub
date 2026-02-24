@@ -156,6 +156,29 @@ const Header = () => {
             <Link href="/categories" className={styles.menuItem} onClick={closeMenu}>카테고리</Link>
             <Link href="/about" className={styles.menuItem} onClick={closeMenu}>회사소개</Link>
             <Link href="/contact" className={styles.menuItem} onClick={closeMenu}>연락처</Link>
+            
+            {/* 모바일용 사용자 섹션 */}
+            <div className={styles.mobileUserSection}>
+              {activeStatus === 'loading' ? (
+                <span>로딩중...</span>
+              ) : activeSession?.user ? (
+                <>
+                  <span className={styles.mobileUserName}>
+                    {activeSession.user.name || activeSession.user.email}
+                  </span>
+                  {(activeSession.user as any).role === 'admin' && (
+                    <Link href="/admin/products" className={styles.mobileAdminBtn} onClick={closeMenu}>
+                      관리자
+                    </Link>
+                  )}
+                  <button className={styles.mobileLogoutBtn} onClick={() => { handleSignOut(); closeMenu(); }}>
+                    로그아웃
+                  </button>
+                </>
+              ) : (
+                <Link href="/login" className={styles.mobileLoginBtn} onClick={closeMenu}>로그인</Link>
+              )}
+            </div>
           </div>
           
           <div className={styles.actions}>
@@ -173,25 +196,28 @@ const Header = () => {
               </svg>
               {totalItems > 0 && <span className={styles.cartCount}>{totalItems}</span>}
             </Link>
-            {activeStatus === 'loading' ? (
-              <span className={styles.authBtn}>로딩중...</span>
-            ) : activeSession?.user ? (
-              <div className={styles.userSection}>
-                {(activeSession.user as any).role === 'admin' && (
-                  <Link href="/admin/products" className={styles.adminBtn}>
-                    관리자
-                  </Link>
-                )}
-                <span className={styles.userName}>
-                  {activeSession.user.name || activeSession.user.email}
-                </span>
-                <button className={styles.logoutBtn} onClick={handleSignOut}>
-                  로그아웃
-                </button>
-              </div>
-            ) : (
-              <Link href="/login" className={styles.loginBtn}>로그인</Link>
-            )}
+            {/* 데스크톱용 사용자 섹션 */}
+            <div className={styles.desktopUserSection}>
+              {activeStatus === 'loading' ? (
+                <span className={styles.authBtn}>로딩중...</span>
+              ) : activeSession?.user ? (
+                <div className={styles.userSection}>
+                  {(activeSession.user as any).role === 'admin' && (
+                    <Link href="/admin/products" className={styles.adminBtn}>
+                      관리자
+                    </Link>
+                  )}
+                  <span className={styles.userName}>
+                    {activeSession.user.name || activeSession.user.email}
+                  </span>
+                  <button className={styles.logoutBtn} onClick={handleSignOut}>
+                    로그아웃
+                  </button>
+                </div>
+              ) : (
+                <Link href="/login" className={styles.loginBtn}>로그인</Link>
+              )}
+            </div>
             <button 
               className={styles.mobileMenuBtn}
               onClick={() => setIsMenuOpen(!isMenuOpen)}

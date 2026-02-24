@@ -85,25 +85,22 @@ $border-color: #e5e7eb;
   }
 }
 
-.ctaBtn {
-  padding: 1rem 2rem;
-  font-size: 1.125rem;
-  font-weight: 600;
-  
-  @media (max-width: 480px) {
-    width: 100%;
-    max-width: 300px;
-  }
-}
-
+.ctaBtn,
 .secondaryBtn {
   padding: 1rem 2rem;
   font-size: 1.125rem;
   font-weight: 600;
+  min-width: 180px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   
   @media (max-width: 480px) {
     width: 100%;
     max-width: 300px;
+    min-width: auto;
   }
 }
 

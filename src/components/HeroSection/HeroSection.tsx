@@ -18,14 +18,12 @@ const HeroSection = () => {
               품질과 가격 모두 만족하는 쇼핑 경험을 제공합니다.
             </p>
             <div className={styles.actions}>
-              <Link href="/products">
-                <button className={`${styles.ctaBtn} btn btn--primary`}>
-                  제품 둘러보기
-                </button>
+              <Link href="/products" className={`${styles.ctaBtn} btn btn--primary`}>
+                제품 둘러보기
               </Link>
-              <button className={`${styles.secondaryBtn} btn btn--outline`}>
+              <Link href="/products?category=sale" className={`${styles.secondaryBtn} btn btn--outline`}>
                 특가 상품 보기
-              </button>
+              </Link>
             </div>
             <div className={styles.stats}>
               <div className={styles.stat}>
